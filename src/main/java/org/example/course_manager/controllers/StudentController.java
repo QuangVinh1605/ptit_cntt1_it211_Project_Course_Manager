@@ -3,14 +3,15 @@ package org.example.course_manager.controllers;
 import lombok.RequiredArgsConstructor;
 import org.example.course_manager.dto.response.ApiResponse;
 import org.example.course_manager.dto.response.SubmissionDto;
+import org.example.course_manager.entity.Course;
+import org.example.course_manager.entity.Submission;
 import org.example.course_manager.entity.User;
-import org.example.course_manager.service.CourseService;
-import org.example.course_manager.service.EnrollmentService;
-import org.example.course_manager.service.SubmissionService;
-import org.example.course_manager.service.UserService; // sẽ tạo
+import org.example.course_manager.service.*;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/student")
@@ -22,6 +23,7 @@ public class StudentController {
     private final SubmissionService submissionService;
     private final CourseService courseService;
     private final UserService userService;  // cần tạo
+    private final CloudinaryService cloudinaryService;
 
     @PostMapping("/courses/{courseId}/enroll")
     public ApiResponse enroll(@PathVariable Long courseId, Authentication auth) {
@@ -41,5 +43,18 @@ public class StudentController {
         return new SubmissionDto(submission.getId(), student.getId(), courseId,
                 submission.getGithubLink(), null, submission.getStatus(),
                 submission.getScore(), submission.getFeedback());
+    }
+    @PostMapping(value = "/submissions/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public SubmissionDto submitWithFile(@RequestParam Long courseId,
+                                        @RequestParam("file") MultipartFile file,
+                                        Authentication auth) {
+        User student = userService.findByUsername(auth.getName());
+        Course course = courseService.findById(courseId);
+        // Upload file lên cloud
+        String fileUrl = cloudinaryService.uploadFile(file);
+        Submission submission = submissionService.submitWithFile(student, course, fileUrl);
+        return new SubmissionDto(submission.getId(), student.getId(), courseId,
+                submission.getGithubLink(), submission.getReportUrl(),
+                submission.getStatus(), submission.getScore(), submission.getFeedback());
     }
 }

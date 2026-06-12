@@ -11,7 +11,7 @@ public class CourseService {
     private final CourseRepository courseRepository;
 
     public Course findById(Long id) {
-        return courseRepository.findById(id).orElseThrow(() -> new RuntimeException("Course not found"));
+        return courseRepository.findById(id).orElseThrow(() -> new RuntimeException("khogn tim thay Course"));
     }
 
     public Course save(Course course) {

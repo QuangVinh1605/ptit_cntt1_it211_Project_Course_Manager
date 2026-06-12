@@ -1,5 +1,6 @@
 package org.example.course_manager.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.course_manager.entity.TokenBlacklist;
 import org.example.course_manager.repository.TokenBlacklistRepository;
@@ -8,6 +9,7 @@ import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class BlacklistService {
     private final TokenBlacklistRepository blacklistRepository;
 

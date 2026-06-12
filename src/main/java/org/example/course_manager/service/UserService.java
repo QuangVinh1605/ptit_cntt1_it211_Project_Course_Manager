@@ -12,9 +12,9 @@ public class UserService {
 
     public User findByUsername(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+                .orElseThrow(() -> new RuntimeException("khong tim thay user: " + username));
         if (!user.isActive()) {
-            throw new RuntimeException("User account is inactive");
+            throw new RuntimeException("User account dang  khongkich hoat");
         }
         return user;
     }

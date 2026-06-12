@@ -25,5 +25,6 @@ public class Course {
     @Column(name="lecturer_id")
     private Long lecturerId;
     private LocalDateTime createdAt=LocalDateTime.now();
+    private LocalDateTime deadline;
 
 }

@@ -16,7 +16,7 @@ public class EnrollmentService {
 
     public void enrollStudent(User student, Course course) {
         if (enrollmentRepository.existsByStudentAndCourse(student, course)) {
-            throw new RuntimeException("Already enrolled");
+            throw new RuntimeException("da dang ky khoa hoc");
         }
         Enrollment enrollment = new Enrollment();
         enrollment.setStudent(student);

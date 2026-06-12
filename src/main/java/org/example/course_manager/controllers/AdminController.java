@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.example.course_manager.dto.request.UserUpdateRequest;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -47,7 +48,7 @@ public class AdminController {
             user.setRole(Role.STUDENT);
         }
         // Mã hóa mật khẩu mặc định
-        user.setPassword(passwordEncoder.encode("mat khau mac dinh"));
+        user.setPassword(passwordEncoder.encode("pass"));
         return convertToDTO(userRepository.save(user));
     }
 
@@ -80,5 +81,25 @@ public class AdminController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCourse(@PathVariable Long id) {
         courseRepository.deleteById(id);
+    }
+
+    @PutMapping("/users/{id}")
+    public UserDTO updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (request.getUsername() != null) user.setUsername(request.getUsername());
+        if (request.getEmail() != null) user.setEmail(request.getEmail());
+        if (request.getRole() != null) user.setRole(request.getRole());
+        if (request.isActive() != user.isActive()) user.setActive(request.isActive());
+        return convertToDTO(userRepository.save(user));
+    }
+
+    @DeleteMapping("/users/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setActive(false); // soft delete, hoặc xóa hẳn: userRepository.deleteById(id);
+        userRepository.save(user);
     }
 }

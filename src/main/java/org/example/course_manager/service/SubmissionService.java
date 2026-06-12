@@ -17,14 +17,12 @@ public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final CourseService courseService;
     private final UserService userService;
-    private final EnrollmentService enrollmentService;  // Thêm dependency
+    private final EnrollmentService enrollmentService;
 
     public Submission submitGitHub(User student, Course course, String githubLink) {
-        // Kiểm tra sinh viên đã đăng ký khóa học chưa
         if (!enrollmentService.isEnrolled(student, course)) {
             throw new RuntimeException("You must enroll in the course before submitting");
         }
-        // Kiểm tra đã nộp bài chưa
         if (submissionRepository.existsByStudentAndCourse(student, course)) {
             throw new RuntimeException("You have already submitted for this course");
         }
@@ -32,8 +30,14 @@ public class SubmissionService {
         submission.setStudent(student);
         submission.setCourse(course);
         submission.setGithubLink(githubLink);
-        submission.setStatus(SubmissionStatus.SUBMITTED);
         submission.setSubmittedAt(LocalDateTime.now());
+
+        LocalDateTime deadline = course.getDeadline();
+        if (deadline != null && LocalDateTime.now().isAfter(deadline)) {
+            submission.setStatus(SubmissionStatus.LATE);
+        } else {
+            submission.setStatus(SubmissionStatus.SUBMITTED);
+        }
         return submissionRepository.save(submission);
     }
 
@@ -41,10 +45,8 @@ public class SubmissionService {
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new RuntimeException("Submission not found"));
 
-        // Kiểm tra giảng viên có tồn tại và còn hoạt động (UserService đã kiểm tra active)
         User lecturer = userService.findByUsername(lecturerUsername);
 
-        // Kiểm tra giảng viên có dạy khóa học này không
         if (!submission.getCourse().getLecturerId().equals(lecturer.getId())) {
             throw new RuntimeException("You are not the lecturer of this course");
         }
@@ -52,6 +54,27 @@ public class SubmissionService {
         submission.setScore(score);
         submission.setFeedback(feedback);
         submission.setStatus(SubmissionStatus.GRADED);
+        return submissionRepository.save(submission);
+    }
+
+    public Submission submitWithFile(User student, Course course, String reportUrl) {
+        if (!enrollmentService.isEnrolled(student, course)) {
+            throw new RuntimeException("You must enroll in the course before submitting");
+        }
+        if (submissionRepository.existsByStudentAndCourse(student, course)) {
+            throw new RuntimeException("You have already submitted for this course");
+        }
+        Submission submission = new Submission();
+        submission.setStudent(student);
+        submission.setCourse(course);
+        submission.setReportUrl(reportUrl);
+        submission.setSubmittedAt(LocalDateTime.now());
+
+        if (course.getDeadline() != null && LocalDateTime.now().isAfter(course.getDeadline())) {
+            submission.setStatus(SubmissionStatus.LATE);
+        } else {
+            submission.setStatus(SubmissionStatus.SUBMITTED);
+        }
         return submissionRepository.save(submission);
     }
 }
