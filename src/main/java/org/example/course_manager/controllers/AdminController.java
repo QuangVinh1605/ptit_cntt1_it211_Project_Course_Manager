@@ -1,5 +1,6 @@
 package org.example.course_manager.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.course_manager.constant.Role;
 import org.example.course_manager.dto.response.UserDTO;
@@ -63,7 +64,14 @@ public class AdminController {
 
     @PostMapping("/courses")
     @ResponseStatus(HttpStatus.CREATED)
-    public Course createCourse(@RequestBody Course course) {
+    public Course createCourse(@RequestBody @Valid Course course) {
+        if (course.getLecturerId() == null) {
+            throw new RuntimeException("Bắt buộc phải có lecturerId khi tạo khóa học");
+        }
+        // Kiểm tra lecturerId có tồn tại trong DB không
+        if (!userRepository.existsById(course.getLecturerId())) {
+            throw new RuntimeException("lecturerId không tồn tại");
+        }
         return courseRepository.save(course);
     }
 

@@ -14,10 +14,7 @@ import org.example.course_manager.entity.User;
 import org.example.course_manager.repository.PasswordResetTokenRepository;
 import org.example.course_manager.repository.UserRepository;
 import org.example.course_manager.security.JwtUtils;
-import org.example.course_manager.service.AuthService;
-import org.example.course_manager.service.BlacklistService;
-import org.example.course_manager.service.RefreshTokenService;
-import org.example.course_manager.service.UserService;
+import org.example.course_manager.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,6 +39,7 @@ public class AuthController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository tokenRepository;
+    private final EmailService emailService;
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
@@ -96,12 +94,11 @@ public class AuthController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email không tồn tại trong hệ thống"));
         String token = authService.createPasswordResetTokenForUser(user);
-        log.info("=== TOKEN RESET PASSWORD ===");
-        log.info("Email: {}", email);
-        log.info("Token: {}", token);
-        log.info("Hết hạn sau 1 giờ");
-        log.info("============================");
-        return new ApiResponse(true, "Token đặt lại mật khẩu đã được tạo. Vui lòng kiểm tra console log để lấy token.");
+
+        // Gửi email chứa token
+        emailService.sendPasswordResetToken(user.getEmail(), token);
+
+        return new ApiResponse(true, "Email đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư.");
     }
 
     @PostMapping("/reset-password")
@@ -118,6 +115,7 @@ public class AuthController {
         tokenRepository.delete(resetToken);
         return new ApiResponse(true, "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập với mật khẩu mới.");
     }
+
 
     private String parseJwt(HttpServletRequest request) {
         String header = request.getHeader("Authorization");

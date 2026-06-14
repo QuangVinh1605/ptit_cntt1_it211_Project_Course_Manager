@@ -32,10 +32,14 @@ public class RefreshTokenService {
 
     public RefreshToken verifyAndGet(String token) {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("refresh token khong hop  le"));
+                .orElseThrow(() -> new RuntimeException("Refresh token không hợp lệ"));
         if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
             refreshTokenRepository.delete(refreshToken);
-            throw new RuntimeException("Refresh token da het han");
+            throw new RuntimeException("Refresh token đã hết hạn");
+        }
+        User user = refreshToken.getUser();
+        if (!user.isActive()) {
+            throw new RuntimeException("Tài khoản đã bị vô hiệu hóa");
         }
         return refreshToken;
     }

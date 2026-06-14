@@ -21,10 +21,10 @@ public class SubmissionService {
 
     public Submission submitGitHub(User student, Course course, String githubLink) {
         if (!enrollmentService.isEnrolled(student, course)) {
-            throw new RuntimeException("You must enroll in the course before submitting");
+            throw new RuntimeException("bạn phải đăng ký khoas hoc thì mới có thể nọp bài tập");
         }
         if (submissionRepository.existsByStudentAndCourse(student, course)) {
-            throw new RuntimeException("You have already submitted for this course");
+            throw new RuntimeException("bạn đã nôppj bài này rồi");
         }
         Submission submission = new Submission();
         submission.setStudent(student);
@@ -43,12 +43,13 @@ public class SubmissionService {
 
     public Submission gradeSubmission(Long submissionId, Integer score, String feedback, String lecturerUsername) {
         Submission submission = submissionRepository.findById(submissionId)
-                .orElseThrow(() -> new RuntimeException("Submission not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài nộp"));
 
         User lecturer = userService.findByUsername(lecturerUsername);
 
-        if (!submission.getCourse().getLecturerId().equals(lecturer.getId())) {
-            throw new RuntimeException("You are not the lecturer of this course");
+        Long courseLecturerId = submission.getCourse().getLecturerId();
+        if (courseLecturerId == null || !courseLecturerId.equals(lecturer.getId())) {
+            throw new RuntimeException("Bạn không phải giảng viên của khóa học này hoặc khóa học chưa có giảng viên");
         }
 
         submission.setScore(score);
@@ -56,13 +57,12 @@ public class SubmissionService {
         submission.setStatus(SubmissionStatus.GRADED);
         return submissionRepository.save(submission);
     }
-
     public Submission submitWithFile(User student, Course course, String reportUrl) {
         if (!enrollmentService.isEnrolled(student, course)) {
-            throw new RuntimeException("You must enroll in the course before submitting");
+            throw new RuntimeException("bạn phải đăng ký kháo hcoj trước khi nộp bài");
         }
         if (submissionRepository.existsByStudentAndCourse(student, course)) {
-            throw new RuntimeException("You have already submitted for this course");
+            throw new RuntimeException("bạn đã nộp bài này rồi");
         }
         Submission submission = new Submission();
         submission.setStudent(student);

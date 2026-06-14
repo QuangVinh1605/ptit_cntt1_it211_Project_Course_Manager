@@ -1,4 +1,4 @@
-package org.example.course_manager.security;
+    package org.example.course_manager.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

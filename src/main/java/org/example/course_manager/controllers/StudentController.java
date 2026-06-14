@@ -1,6 +1,8 @@
 package org.example.course_manager.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.course_manager.dto.request.ChangePasswordRequest;
 import org.example.course_manager.dto.response.ApiResponse;
 import org.example.course_manager.dto.response.SubmissionDto;
 import org.example.course_manager.entity.Course;
@@ -56,5 +58,12 @@ public class StudentController {
         return new SubmissionDto(submission.getId(), student.getId(), courseId,
                 submission.getGithubLink(), submission.getReportUrl(),
                 submission.getStatus(), submission.getScore(), submission.getFeedback());
+    }
+    @PostMapping("/change-password")
+    public ApiResponse changePassword(@Valid @RequestBody ChangePasswordRequest request,
+                                      Authentication authentication) {
+        String username = authentication.getName();
+        userService.changePassword(username, request.getOldPassword(), request.getNewPassword());
+        return new ApiResponse(true, "Đổi mật khẩu thành công");
     }
 }
