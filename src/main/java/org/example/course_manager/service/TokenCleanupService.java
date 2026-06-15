@@ -1,6 +1,7 @@
 package org.example.course_manager.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.course_manager.entity.TokenBlacklist;
 import org.example.course_manager.repository.TokenBlacklistRepository;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -9,10 +10,11 @@ import java.time.Instant;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class TokenCleanupService {
     private final TokenBlacklistRepository blacklistRepository;
 
-    @Scheduled(cron = "0 0 2 * * ?") // Chạy 2h sáng mỗi ngày
+    @Scheduled(cron = "0 0 2 * * ?")
     public void cleanExpiredTokens() {
         Iterable<TokenBlacklist> all = blacklistRepository.findAll();
         int count = 0;
@@ -22,6 +24,6 @@ public class TokenCleanupService {
                 count++;
             }
         }
-        System.out.println("Đã xóa " + count + " token hết hạn khỏi blacklist");
+        log.info("Đã xóa {} token hết hạn khỏi blacklist", count);
     }
 }

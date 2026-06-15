@@ -3,6 +3,7 @@ package org.example.course_manager.aspect;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,5 +22,11 @@ public class LoggingAspect {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String lecturer = auth != null ? auth.getName() : "unknown";
         log.info("Giảng viên {} chấm điểm bài nộp {} với số điểm {}", lecturer, submissionId, score);
+    }
+    @AfterThrowing(pointcut = "execution(* org.example.course_manager.service.SubmissionService.gradeSubmission(..))", throwing = "ex")
+    public void logGradeSubmissionError(JoinPoint joinPoint, Exception ex) {
+        Object[] args = joinPoint.getArgs();
+        Long submissionId = (Long) args[0];
+        log.error("Chấm điểm bài nộp {} thất bại: {}", submissionId, ex.getMessage());
     }
 }

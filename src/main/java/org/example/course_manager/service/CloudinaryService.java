@@ -16,6 +16,19 @@ public class CloudinaryService {
     private final Cloudinary cloudinary;
 
     public String uploadFile(MultipartFile file) {
+        // Kiểm tra định dạng file
+        String contentType = file.getContentType();
+        if (contentType == null ||
+                !(contentType.equals("application/pdf") ||
+                        contentType.equals("application/msword") ||
+                        contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))) {
+            throw new RuntimeException("Chỉ chấp nhận file PDF hoặc Word (doc, docx)");
+        }
+
+        if (file.getSize() > 15 * 1024 * 1024) {
+            throw new RuntimeException("Kích thước file vượt quá 15MB");
+        }
+
         try {
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap(

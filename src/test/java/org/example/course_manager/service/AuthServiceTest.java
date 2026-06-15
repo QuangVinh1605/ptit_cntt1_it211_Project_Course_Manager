@@ -13,42 +13,59 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-    @Mock private UserRepository userRepository;
-    @Mock private PasswordEncoder passwordEncoder;
-    @Mock private PasswordResetTokenRepository tokenRepository;
-    @InjectMocks private AuthService authService;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+    @Mock
+    private PasswordResetTokenRepository tokenRepository;
+
+    @InjectMocks
+    private AuthService authService;
 
     @Test
-    void registerStudent_Success() {
+    void registerStudent_ShouldSucceed_WhenUsernameAndEmailNotExist() {
         RegisterRequest request = new RegisterRequest();
-        request.setUsername("testuser");
-        request.setEmail("test@example.com");
-        request.setPassword("password123");
+        request.setUsername("newstudent");
+        request.setEmail("new@example.com");
+        request.setPassword("secret");
 
-        when(userRepository.existsByUsername("testuser")).thenReturn(false);
-        when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
-        when(passwordEncoder.encode("password123")).thenReturn("encodedPass");
+        when(userRepository.existsByUsername("newstudent")).thenReturn(false);
+        when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+        when(passwordEncoder.encode("secret")).thenReturn("encodedSecret");
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        authService.registerStudent(request);
-
-        verify(userRepository, times(1)).save(any(User.class));
+        assertDoesNotThrow(() -> authService.registerStudent(request));
+        verify(userRepository).save(argThat(user ->
+                user.getUsername().equals("newstudent") &&
+                        user.getEmail().equals("new@example.com") &&
+                        user.getRole() == Role.STUDENT &&
+                        user.isActive()
+        ));
     }
 
     @Test
-    void registerStudent_UsernameAlreadyExists_ThrowsException() {
+    void registerStudent_ShouldThrowException_WhenUsernameExists() {
         RegisterRequest request = new RegisterRequest();
         request.setUsername("existing");
-        request.setEmail("new@example.com");
-
         when(userRepository.existsByUsername("existing")).thenReturn(true);
-
         assertThrows(RuntimeException.class, () -> authService.registerStudent(request));
         verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void createPasswordResetTokenForUser_ShouldReturnToken() {
+        User user = new User();
+        user.setId(1L);
+        String token = authService.createPasswordResetTokenForUser(user);
+        assertNotNull(token);
+        verify(tokenRepository).deleteByUser(user);
+        verify(tokenRepository).save(any());
     }
 }

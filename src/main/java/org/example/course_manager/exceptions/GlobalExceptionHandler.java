@@ -52,4 +52,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse> handleAccessDenied() {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse(false, "Access denied"));
     }
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiResponse> handleDuplicateResource(DuplicateResourceException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiResponse(false, ex.getMessage()));
+    }
 }

@@ -5,6 +5,7 @@ import org.example.course_manager.constant.SubmissionStatus;
 import org.example.course_manager.entity.Course;
 import org.example.course_manager.entity.Submission;
 import org.example.course_manager.entity.User;
+import org.example.course_manager.exceptions.DuplicateResourceException;
 import org.example.course_manager.repository.SubmissionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +22,10 @@ public class SubmissionService {
 
     public Submission submitGitHub(User student, Course course, String githubLink) {
         if (!enrollmentService.isEnrolled(student, course)) {
-            throw new RuntimeException("bạn phải đăng ký khoas hoc thì mới có thể nọp bài tập");
+            throw new DuplicateResourceException("bạn phải đăng ký khoas hoc thì mới có thể nọp bài tập");
         }
         if (submissionRepository.existsByStudentAndCourse(student, course)) {
-            throw new RuntimeException("bạn đã nôppj bài này rồi");
+            throw new DuplicateResourceException("bạn đã nôppj bài này rồi");
         }
         Submission submission = new Submission();
         submission.setStudent(student);

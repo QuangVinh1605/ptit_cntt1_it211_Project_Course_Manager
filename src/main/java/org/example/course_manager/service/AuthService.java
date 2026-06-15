@@ -5,6 +5,7 @@ import org.example.course_manager.constant.Role;
 import org.example.course_manager.dto.request.RegisterRequest;
 import org.example.course_manager.entity.PasswordResetToken;
 import org.example.course_manager.entity.User;
+import org.example.course_manager.exceptions.DuplicateResourceException;
 import org.example.course_manager.repository.PasswordResetTokenRepository;
 import org.example.course_manager.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,10 +26,10 @@ public class AuthService {
 
     public void registerStudent(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username da ton tai");
+            throw new DuplicateResourceException("Username da ton tai");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email da duoc dang ky");
+            throw new DuplicateResourceException("Email da duoc dang ky");
         }
         User user = new User();
         user.setUsername(request.getUsername());
